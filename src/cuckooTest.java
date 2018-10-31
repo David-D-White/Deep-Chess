@@ -3,6 +3,8 @@ import java.util.Scanner;
 import org.petero.cuckoo.engine.chess.*;
 
 public class cuckooTest {
+	public static final Move EMPTY = new Move (0,0,Piece.EMPTY);
+	
 	public static void main(String[] args) {
 		Player p1 = new HumanPlayer();
 		Player p2 = new ComputerPlayer();
@@ -12,19 +14,35 @@ public class cuckooTest {
 		Scanner s = new Scanner(System.in);
 
 		while (true) {
-			String command = s.next();
 			MoveGen.MoveList moves;
 			if (!MoveGen.inCheck(game.pos))
 				moves = new MoveGen().pseudoLegalMoves(game.pos);
 			else 
 				moves = new MoveGen().checkEvasions(game.pos);
 			MoveGen.removeIllegal(game.pos, moves);
+			
+			Move m = new Move (0,0,Piece.EMPTY);
+			for (int i = 0; i < moves.m.length; i++)
+			{
+				if (moves.m[i].equals(m))
+				{
+					System.out.println(i);
+					break;
+				}
+			}
+			
+			
+			String command = s.next();
 			Move move = TextIO.uciStringToMove(command);
 			boolean valid = false;
 			for (int i = 0; i < moves.m.length; i++) {
 				if (moves.m[i].equals(move)) {
 					game.pos.makeMove(move, new UndoInfo());
 					valid = true;
+					break;
+				}
+				else if (moves.m.equals(EMPTY))
+				{
 					break;
 				}
 			}
@@ -40,7 +58,6 @@ public class cuckooTest {
 			// for (char c : hash)
 
 		}
-
 		// f0ba1035a7a520df
 
 	}

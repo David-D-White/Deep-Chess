@@ -1,42 +1,45 @@
+import java.awt.Color;
+
+import ca.daviddwhite.deep_chess.net.NeuralNet;
+import ca.daviddwhite.deep_chess.net.Neuron;
 import processing.core.PApplet;
 
 public class Debug extends PApplet {
 	final int BOARD_WIDTH = 8, BOARD_HEIGHT = 8;
 	final int PADDING = 100, GRID_SIZE = 100;
-	
-	
-	public void settings ()
-	{
-		setSize(BOARD_WIDTH*GRID_SIZE + PADDING,BOARD_HEIGHT*GRID_SIZE + PADDING);
+
+	NeuralNet n;
+
+	public void settings() {
+		size(1280, 720);
 	}
-	
-	public void setup ()
-	{
-		rectMode(CORNER);
-		noFill();
-		stroke(0);
+
+	public void setup() {
+		n = new NeuralNet(2, new int[] {4, 4}, 1);
+		Neuron[] inputs = n.getInputs();
+		inputs[0].value = 0;
+		inputs[1].value = 1;
+		n.feedForward();
 	}
-	
-	public void draw()
-	{
-		background(255);
-		for (int i = 0; i < BOARD_WIDTH; i++)
-		{
-			for (int j = 0; j < BOARD_HEIGHT; j++)
-			{
-				if (i%2 != j%2)
-					fill (0);
-				else
-					fill(255);
-				rect(PADDING/2 + i*GRID_SIZE, PADDING/2 + j*GRID_SIZE, GRID_SIZE, GRID_SIZE);
+
+	public void draw() {
+		background(150, 200, 255);
+		n.draw(this, 100, height / 2, height - 200, width - 200, 100);
+		if (keyPressed) {
+			System.out.println("keyPressed");
+			if (key == 'w') {
+				n.mutateWeights(0.5, 0.1);
+				System.out.println("mutated weights");
+			} else if (key == 'n') {
+				n.mutateNeurons(0.5);
+				System.out.println("mutated neurons");
 			}
+			n.feedForward();
+			keyPressed = false;
 		}
-		
-		
 	}
-	
-	public static void main(String [] args)
-	{
+
+	public static void main(String[] args) {
 		PApplet.main("Debug");
 	}
 }
