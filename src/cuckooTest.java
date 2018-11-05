@@ -1,63 +1,64 @@
 import java.util.Scanner;
 
 import org.petero.cuckoo.engine.chess.*;
+import org.petero.cuckoo.engine.chess.Game.GameState;
+
+import ca.daviddwhite.deep_chess.ChessNet;
+import ca.daviddwhite.deep_chess.TrainingGame;
 
 public class cuckooTest {
-	public static final Move EMPTY = new Move (0,0,Piece.EMPTY);
-	
+	public static final Move EMPTY = new Move(0, 0, Piece.EMPTY);
+
+	public static ChessNet cp = new ChessNet();
+	public static ChessNet cp2 = new ChessNet();
+	public static MoveGen mg = new MoveGen();
+
 	public static void main(String[] args) {
-		Player p1 = new HumanPlayer();
-		Player p2 = new ComputerPlayer();
-		Game game = new Game(p1, p2);
-		System.out.println(game.pos.toString());
+		TrainingGame game = null;
+		for (int i = 0; i < 10100; i++) {
+			game = new TrainingGame(cp, cp2);
 
-		Scanner s = new Scanner(System.in);
+			// System.out.println("White: " + game.getFitness(cp));
+			// System.out.println("Black: " + game.getFitness(cp2));
 
-		while (true) {
-			MoveGen.MoveList moves;
-			if (!MoveGen.inCheck(game.pos))
-				moves = new MoveGen().pseudoLegalMoves(game.pos);
-			else 
-				moves = new MoveGen().checkEvasions(game.pos);
-			MoveGen.removeIllegal(game.pos, moves);
-			
-			Move m = new Move (0,0,Piece.EMPTY);
-			for (int i = 0; i < moves.m.length; i++)
-			{
-				if (moves.m[i].equals(m))
-				{
-					System.out.println(i);
-					break;
-				}
-			}
-			
-			
-			String command = s.next();
-			Move move = TextIO.uciStringToMove(command);
-			boolean valid = false;
-			for (int i = 0; i < moves.m.length; i++) {
-				if (moves.m[i].equals(move)) {
-					game.pos.makeMove(move, new UndoInfo());
-					valid = true;
-					break;
-				}
-				else if (moves.m.equals(EMPTY))
-				{
-					break;
-				}
-			}
-			if (!valid)
-				System.out.println("Invalid Move: " + move);
-			else {
-				System.out.println(game.pos.toString());
-				System.out.println(game.getGameState());
-				System.out.println(MoveGen.inCheck(game.pos));
-			}
-
-			// String hash = Long.toHexString(game.pos.zobristHash());
-			// for (char c : hash)
-
+			game.completeGame();
+			if (i % 100 == 0)
+				System.out.println(String.format("%.2f", i / 10100.0 * 100) + "%");
 		}
+
+		// Scanner s = new Scanner(System.in);
+		//
+		// while (game.getGameState() == GameState.ALIVE) {
+		// MoveGen.MoveList moves;
+		// if (!MoveGen.inCheck(game.pos))
+		// moves = mg.pseudoLegalMoves(game.pos);
+		// else
+		// moves = mg.checkEvasions(game.pos);
+		// MoveGen.removeIllegal(game.pos, moves);
+		//
+		// moveCheck: while (true) {
+		// String command = s.next();
+		// Move move = TextIO.uciStringToMove(command);
+		// for (int i = 0; i < moves.m.length; i++) {
+		// if (moves.m[i].equals(move)) {
+		// game.makeMove(move);
+		// break moveCheck;
+		// } else if (moves.m[i].equals(EMPTY))
+		// break;
+		// }
+		// System.out.println("Invalid Move: " + move);
+		// }
+		// System.out.println(game.pos.toString());
+		// System.out.println(game.getGameState());
+		// System.out.println(MoveGen.inCheck(game.pos));
+		// }
+
+		System.out.println(game.pos.toString());
+		System.out.println(game.getGameStateString());
+		System.out.println(MoveGen.inCheck(game.pos));
+
+		System.out.println("White:" + game.getFitness(cp));
+		System.out.println("Black:" + game.getFitness(cp2));
 		// f0ba1035a7a520df
 
 	}

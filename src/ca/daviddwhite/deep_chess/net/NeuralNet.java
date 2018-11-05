@@ -18,7 +18,7 @@ public class NeuralNet {
 	// Output Nerurons
 	private Neuron[] outputs;
 
-	// Construct an empty net
+	// Construct an empty NeuralNetwork
 	private NeuralNet() {
 	}
 
@@ -75,12 +75,19 @@ public class NeuralNet {
 	 *            the NeuralNet to copy
 	 */
 	public NeuralNet(NeuralNet n) {
-		// Copy the neural net size
+		// Copy the neural net structure
 		this.inputs = new Neuron[n.inputs.length];
+		for (int i = 0; i < inputs.length; i++)
+			inputs[i] = new Neuron();
 		this.hiddenLayers = new Neuron[n.hiddenLayers.length][];
-		for (int i = 0; i < this.hiddenLayers.length; i++)
+		for (int i = 0; i < this.hiddenLayers.length; i++) {
 			this.hiddenLayers[i] = new Neuron[n.hiddenLayers[i].length];
+			for (int j = 0; j < hiddenLayers[i].length; j++)
+				hiddenLayers[i][j] = new Neuron();
+		}
 		this.outputs = new Neuron[n.outputs.length];
+		for (int i = 0; i < outputs.length; i++)
+			outputs[i] = new Neuron();
 
 		// Copy the weights of the first connection layer
 		for (int i = 0; i < this.hiddenLayers[0].length; i++) {
@@ -138,12 +145,12 @@ public class NeuralNet {
 	}
 
 	/**
-	 * Mutate the weights of this neural net up or down based on stepVal.
+	 * Randomly increase or decrease the weights in this network by a given value.
 	 *
 	 * @param mutateChance
-	 *            the chance to modify the weight
+	 *            the chance that a given weight will be modified
 	 * @param stepVal
-	 *            the step value (i.e how much to modify by)
+	 *            the step value, i.e how much to add or subtract from a weights
 	 */
 	public void mutateWeights(double mutateChance, double stepVal) {
 		for (Neuron[] ns : hiddenLayers) {
@@ -169,17 +176,19 @@ public class NeuralNet {
 	}
 
 	/**
-	 * Add or remove neurons from the hidden layers.
+	 * Randomly adds or removes neurons from the hidden layers.
 	 *
 	 * @param mutateChance
-	 *            the chance to add or remove a neuron
+	 *            the chance to select a neuron to be added or removed
+	 * @param removeChance
+	 *            the chance for a selected neuron to be removed rather than added
 	 */
-	public void mutateNeurons(double mutateChance) {
+	public void mutateNeurons(double mutateChance, double removeChance) {
 		for (int i = 0; i < hiddenLayers.length; i++) {
 			if (Math.random() < mutateChance) {
 				if (hiddenLayers[i].length > 1 && Math.random() < 0.5) // Remove a neuron
 				{
-					int index = (int) Math.random() * hiddenLayers[i].length;
+					int index = (int) (Math.random() * hiddenLayers[i].length);
 					hiddenLayers[i][index].clearConnections();
 
 					Neuron[] newLayer = new Neuron[hiddenLayers[i].length - 1];
@@ -213,7 +222,91 @@ public class NeuralNet {
 		}
 	}
 
-	public void draw(PApplet canvas, float x, float y, float height, float width, float neuronRad) {
+	/**
+	 * Randomly adds or removes a hidden layer from the network.
+	 *
+	 * @param maxInsertSize
+	 *            the maximum neurons to put in a new layer
+	 * @param maxRemoveSize
+	 *            the maximum neurons tin a layer that will be removed
+	 * @param removeChance
+	 *            the chance to remove a layer
+	 */
+	public void mutateLayer(int maxInsertSize, int maxRemoveSize, double removeChance) {
+		// Generate Dimension and Index
+		int index = (int) (Math.random() * hiddenLayers.length);
+		int size = (int) (Math.random() * maxInsertSize + 1);
+
+		if (hiddenLayers.length > 1 && hiddenLayers[index].length <= maxRemoveSize && Math.random() < removeChance) {
+			for (Neuron n : hiddenLayers[index])
+				n.clearConnections();
+			Neuron[][] newLayers = new Neuron[hiddenLayers.length - 1][];
+			for (int i = 0; i < index; i++)
+				newLayers[i] = hiddenLayers[i];
+			for (int i = index + 1; i < hiddenLayers.length; i++)
+				newLayers[i - 1] = hiddenLayers[i];
+
+			if (index == 0) {
+				for (Neuron n1 : inputs) {
+					for (Neuron n2 : newLayers[0])
+						new Synapse(n2, n1, Math.random() * 2 - 1);
+				}
+			} else if (index == hiddenLayers.length - 1) {
+				for (Neuron n1 : newLayers[newLayers.length - 1]) {
+					for (Neuron n2 : outputs)
+						new Synapse(n2, n1, Math.random() * 2 - 1);
+				}
+			} else {
+				for (Neuron n1 : newLayers[index - 1]) {
+					for (Neuron n2 : newLayers[index])
+						new Synapse(n2, n1, Math.random() * 2 - 1);
+				}
+			}
+			hiddenLayers = newLayers;
+		} else {
+			index = (int) (Math.random() * (hiddenLayers.length + 1));
+
+			// Create and fill new Hidden Layer Array
+			Neuron[][] newLayers = new Neuron[hiddenLayers.length + 1][];
+			for (int i = 0; i < index; i++)
+				newLayers[i] = hiddenLayers[i];
+			for (int i = index + 1; i < newLayers.length; i++)
+				newLayers[i] = hiddenLayers[i - 1];
+			// Disconnect old layers
+			if (index < newLayers.length - 1) {
+				for (Neuron n : newLayers[index + 1])
+					n.clearBackConnections();
+			} else {
+				for (Neuron n : outputs)
+					n.clearBackConnections();
+			}
+
+			// Connect old layers with inserted layer
+			newLayers[index] = new Neuron[size];
+			for (int i = 0; i < newLayers[index].length; i++) {
+				newLayers[index][i] = new Neuron();
+				if (index > 0) {
+					for (Neuron n : newLayers[index - 1])
+						new Synapse(newLayers[index][i], n, Math.random() * 2 - 1);
+				} else {
+					for (Neuron n : inputs)
+						new Synapse(newLayers[index][i], n, Math.random() * 2 - 1);
+				}
+				if (index < newLayers.length - 1) {
+					for (Neuron n : newLayers[index + 1])
+						new Synapse(n, newLayers[index][i], Math.random() * 2 - 1);
+				} else {
+					for (Neuron n : outputs)
+						new Synapse(n, newLayers[index][i], Math.random() * 2 - 1);
+				}
+			}
+			// Replace hidden layers
+			hiddenLayers = newLayers;
+		}
+	}
+
+	// Debug Method
+	public void draw(PApplet canvas, float x, float y, float height, float width, float neuronDiam) {
 		int textColor = 0, neuronColor = 255, synapseColor = 150, weightColor = Color.RED.getRGB();
 		int neuronLineColor = 0;
 		int weightDist = 4;
@@ -221,7 +314,7 @@ public class NeuralNet {
 
 		canvas.ellipseMode(PApplet.CENTER);
 		canvas.textAlign(PApplet.CENTER, PApplet.CENTER);
-		canvas.textSize(neuronRad / 5);
+		canvas.textSize(neuronDiam / 5);
 
 		int maxNeurons = Math.max(inputs.length, outputs.length);
 		for (Neuron[] ns : hiddenLayers)
@@ -277,25 +370,31 @@ public class NeuralNet {
 		canvas.stroke(neuronLineColor);
 		for (int i = 0; i < inputs.length; i++) {
 			float center = (inputs.length - 1) / 2f * verticalStep;
-			canvas.ellipse(x, y + i * verticalStep - center, neuronRad, neuronRad);
+			int synapseCount = inputs[i].getBackConnections().length + inputs[i].getFrontConnections().length;
+			canvas.ellipse(x, y + i * verticalStep - center, neuronDiam, neuronDiam);
 			canvas.fill(textColor);
 			canvas.text(String.format(format, inputs[i].value), x, y + i * verticalStep - center);
+			canvas.text("" + synapseCount, x, y + i * verticalStep - center + neuronDiam / 2 + neuronDiam / 5);
 			canvas.fill(neuronColor);
 		}
 		for (int i = 0; i < hiddenLayers.length; i++) {
 			for (int j = 0; j < hiddenLayers[i].length; j++) {
 				float center = (hiddenLayers[i].length - 1) / 2f * verticalStep;
-				canvas.ellipse(x + (i + 1) * horizontalStep, y + j * verticalStep - center, neuronRad, neuronRad);
+				int synapseCount = hiddenLayers[i][j].getBackConnections().length + hiddenLayers[i][j].getFrontConnections().length;
+				canvas.ellipse(x + (i + 1) * horizontalStep, y + j * verticalStep - center, neuronDiam, neuronDiam);
 				canvas.fill(textColor);
 				canvas.text(String.format(format, hiddenLayers[i][j].value), x + (i + 1) * horizontalStep, y + j * verticalStep - center);
+				canvas.text("" + synapseCount, x + (i + 1) * horizontalStep, y + j * verticalStep - center + neuronDiam / 2 + neuronDiam / 5);
 				canvas.fill(neuronColor);
 			}
 		}
 		for (int i = 0; i < outputs.length; i++) {
 			float center = (outputs.length - 1) / 2f * verticalStep;
-			canvas.ellipse(x + (hiddenLayers.length + 1) * horizontalStep, y + i * verticalStep - center, neuronRad, neuronRad);
+			int synapseCount = outputs[i].getBackConnections().length + outputs[i].getFrontConnections().length;
+			canvas.ellipse(x + (hiddenLayers.length + 1) * horizontalStep, y + i * verticalStep - center, neuronDiam, neuronDiam);
 			canvas.fill(textColor);
 			canvas.text(String.format(format, outputs[i].value), x + (hiddenLayers.length + 1) * horizontalStep, y + i * verticalStep - center);
+			canvas.text("" + synapseCount, x + (hiddenLayers.length + 1) * horizontalStep, y + i * verticalStep - center + neuronDiam / 2 + neuronDiam / 5);
 			canvas.fill(neuronColor);
 		}
 	}
