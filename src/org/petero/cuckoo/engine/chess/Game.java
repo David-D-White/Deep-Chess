@@ -29,9 +29,9 @@ import java.util.List;
 public class Game {
     protected List<Move> moveList = null;
     protected List<UndoInfo> uiInfoList = null;
-    List<Boolean> drawOfferList = null;
+    protected List<Boolean> drawOfferList = null;
     protected int currentMove;
-    boolean pendingDrawOffer;
+    protected boolean pendingDrawOffer;
     GameState drawState;
     String drawStateMoveStr; // Move required to claim DRAW_REP or DRAW_50
     GameState resignState;

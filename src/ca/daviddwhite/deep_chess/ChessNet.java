@@ -20,7 +20,7 @@ public class ChessNet implements Player {
 	public static final int INPUTS = 17;
 
 	/** The number of neurons in each hidden layer of the network. */
-	public static final int[] HIDDEN_LAYERS = {100, 100, 100, 100};
+	public static final int[] HIDDEN_LAYERS = {64,64,64,64,64};
 
 	/** The number of neurons in the output layer of the network */
 	public static final int OUTPUTS = 1;
