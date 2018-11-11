@@ -2,6 +2,7 @@ package ca.daviddwhite.deep_chess;
 
 import java.util.List;
 
+import org.petero.cuckoo.engine.chess.Game.GameState;
 import org.petero.cuckoo.engine.chess.Move;
 import org.petero.cuckoo.engine.chess.MoveGen;
 import org.petero.cuckoo.engine.chess.Player;
@@ -16,11 +17,35 @@ import ca.daviddwhite.deep_chess.net.Neuron;
  */
 public class ChessNet implements Player {
 
+	/**
+	 * A copy of a ChessNet class with reference to the original for thread-safe
+	 * training.
+	 */
+	public static class TrainingCopy {
+
+		/** The reference (original) ChessNet. */
+		public ChessNet reference;
+
+		/** The copy ChessNet. */
+		public ChessNet copy;
+
+		/**
+		 * Instantiates a new training copy.
+		 *
+		 * @param chessNet
+		 *            the chess net to copy
+		 */
+		public TrainingCopy(ChessNet chessNet) {
+			reference = chessNet;
+			copy = new ChessNet(chessNet.net);
+		}
+	}
+
 	/** The number of neurons in the output layer of the network. */
 	public static final int INPUTS = 17;
 
 	/** The number of neurons in each hidden layer of the network. */
-	public static final int[] HIDDEN_LAYERS = {64,64,64,64,64};
+	public static final int[] HIDDEN_LAYERS = {64, 64, 64, 64, 64};
 
 	/** The number of neurons in the output layer of the network */
 	public static final int OUTPUTS = 1;
@@ -32,7 +57,7 @@ public class ChessNet implements Player {
 	// Current fitness of the net
 	double fitness;
 	// Game stats
-	int wins, loss, draws;
+	int wins, losses, draws;
 
 	/**
 	 * Instantiates a new chess net.
@@ -41,11 +66,60 @@ public class ChessNet implements Player {
 		net = new NeuralNet(INPUTS, HIDDEN_LAYERS, OUTPUTS);
 	}
 
-	
+	private ChessNet(NeuralNet n) {
+		net = new NeuralNet(n);
+	}
+
+	/**
+	 * Adds the given game stat to this nets record.
+	 *
+	 * @param fitness
+	 *            the fitness of the game
+	 * @param state
+	 *            the state of the finished game
+	 */
+	public void addGameStat(double fitness, boolean isWhite, GameState state) {
+		switch (state) {
+		case ALIVE:
+			return;
+		case WHITE_MATE:
+		case RESIGN_BLACK:
+			if (isWhite)
+				wins++;
+			else
+				losses++;
+			break;
+		case BLACK_MATE:
+		case RESIGN_WHITE:
+			if (isWhite)
+				losses++;
+			else
+				wins++;
+			break;
+		default:
+			draws++;
+		}
+
+		// Keep a rolling average of the fitness score
+		int gameNum = wins + losses + draws;
+		this.fitness *= (gameNum - 1.0) / gameNum;
+		this.fitness += fitness / gameNum;
+	}
+
+	/**
+	 * Get the stats for this neural net in an array
+	 *
+	 * @return the stats as an array in the form of {fitness, wins, losses, draws}
+	 */
+	public double[] getStats() {
+		return new double[] {fitness, wins, losses, draws};
+	}
+
 	/**
 	 * Decide on a mobe based on the current board state.
 	 *
-	 * @param pos the position of the game
+	 * @param pos
+	 *            the position of the game
 	 * @return the move to make
 	 */
 	public Move getMove(Position pos) {

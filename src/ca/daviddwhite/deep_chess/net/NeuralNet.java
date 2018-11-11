@@ -1,6 +1,3 @@
-/*
- * 
- */
 package ca.daviddwhite.deep_chess.net;
 
 import java.awt.Color;
@@ -12,6 +9,9 @@ import java.util.Scanner;
 import ca.daviddwhite.deep_chess.net.Neuron.Synapse;
 import processing.core.PApplet;
 
+/**
+ * A basic neural network class with methods for calculation and mutation
+ */
 public class NeuralNet {
 	// Input Neurons
 	private Neuron[] inputs;
