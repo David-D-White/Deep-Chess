@@ -3,9 +3,11 @@
  */
 package ca.daviddwhite.deep_chess.net;
 
-import java.util.Arrays;
-
 import java.awt.Color;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.Scanner;
 
 import ca.daviddwhite.deep_chess.net.Neuron.Synapse;
 import processing.core.PApplet;
@@ -302,6 +304,90 @@ public class NeuralNet {
 			}
 			// Replace hidden layers
 			hiddenLayers = newLayers;
+		}
+	}
+
+	public void printNet(PrintStream out) {
+		for (int i = 0; i < hiddenLayers.length; i++) { // Print hidden layer size and weights
+			if (i > 0)
+				out.print(';');
+			for (int j = 0; j < hiddenLayers[i].length; j++) {
+				if (j > 0)
+					out.print(':');
+				Synapse[] connections = hiddenLayers[i][j].getBackConnections();
+				for (int k = 0; k < connections.length; k++) {
+					if (k > 0)
+						out.print(',');
+					out.print(connections[k].weight);
+				}
+			}
+		}
+
+		out.print(';');
+
+		for (int i = 0; i < outputs.length; i++) {
+			if (i > 0)
+				out.print(':');
+			Synapse[] connections = outputs[i].getBackConnections();
+			for (int j = 0; j < connections.length; j++) {
+				if (j > 0)
+					out.print(',');
+				out.print(connections[j].weight);
+			}
+		}
+	}
+
+	public NeuralNet(InputStream in) {
+		String[][] neurons;
+
+		{ 	// Read weight list array from input stream
+			Scanner s = new Scanner(in);
+			String input = s.nextLine();
+			s.close();
+
+			String[] layers = input.split(";");
+			neurons = new String[layers.length][];
+			for (int i = 0; i < neurons.length; i++)
+				neurons[i] = layers[i].split(":");
+		}
+
+		// Create the Neural Network with empty neurons
+		inputs = new Neuron[neurons[0][0].split(",").length];
+		for (
+
+				int i = 0; i < inputs.length; i++)
+			inputs[i] = new Neuron();
+		hiddenLayers = new Neuron[neurons.length - 1][];
+		for (int i = 0; i < hiddenLayers.length; i++) {
+			hiddenLayers[i] = new Neuron[neurons[i].length];
+			for (int j = 0; j < hiddenLayers[i].length; j++)
+				hiddenLayers[i][j] = new Neuron();
+		}
+		outputs = new Neuron[neurons[neurons.length - 1].length];
+		for (int i = 0; i < outputs.length; i++)
+			outputs[i] = new Neuron();
+
+		// Fill the weights of the first connection layer
+		for (int i = 0; i < hiddenLayers[0].length; i++) {
+			String[] connections = neurons[0][i].split(",");
+			for (int j = 0; j < inputs.length; j++)
+				new Synapse(hiddenLayers[0][i], inputs[j], Double.parseDouble(connections[j]));
+		}
+
+		// Fill the hidden layer connection weights
+		for (int i = 1; i < hiddenLayers.length; i++) {
+			for (int j = 0; j < hiddenLayers[i].length; j++) {
+				String[] connections = neurons[i][j].split(",");
+				for (int k = 0; k < hiddenLayers[i - 1].length; k++)
+					new Synapse(hiddenLayers[i][j], hiddenLayers[i - 1][k], Double.parseDouble(connections[k]));
+			}
+		}
+
+		// Fill the output layer connection weights
+		for (int i = 0; i < outputs.length; i++) {
+			String[] connections = neurons[neurons.length - 1][i].split(",");
+			for (int j = 0; j < hiddenLayers[hiddenLayers.length - 1].length; j++)
+				new Neuron.Synapse(outputs[i], hiddenLayers[hiddenLayers.length - 1][j], Double.parseDouble(connections[j]));
 		}
 	}
 

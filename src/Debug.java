@@ -1,3 +1,7 @@
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+
 import ca.daviddwhite.deep_chess.net.NeuralNet;
 import ca.daviddwhite.deep_chess.net.Neuron;
 import processing.core.PApplet;
@@ -36,6 +40,14 @@ public class Debug extends PApplet {
 			} else if (key == 'c') {
 				n = new NeuralNet(n);
 				System.out.println("copied network");
+			} else if (key == 'p') {
+				try {
+					n.printNet(new PrintStream("net.txt"));
+					n = new NeuralNet(new FileInputStream("net.txt"));
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
+				System.out.println("wrote and read network");
 			}
 			n.feedForward();
 			keyPressed = false;
