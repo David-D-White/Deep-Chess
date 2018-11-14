@@ -1,5 +1,6 @@
 package ca.daviddwhite.deep_chess;
 
+import java.io.InputStream;
 import java.util.List;
 
 import org.petero.cuckoo.engine.chess.Game.GameState;
@@ -47,7 +48,7 @@ public class ChessNet implements Player {
 	public static final int INPUTS = 17;
 
 	/** The number of neurons in each hidden layer of the network. */
-	public static final int[] HIDDEN_LAYERS = {16,8};
+	public static final int[] HIDDEN_LAYERS = {16, 8};
 
 	/** The number of neurons in the output layer of the network */
 	public static final int OUTPUTS = 1;
@@ -66,6 +67,10 @@ public class ChessNet implements Player {
 	 */
 	public ChessNet() {
 		net = new NeuralNet(INPUTS, HIDDEN_LAYERS, OUTPUTS);
+	}
+
+	public ChessNet(InputStream is) {
+		net = new NeuralNet(is);
 	}
 
 	// Copy constructor

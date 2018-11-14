@@ -145,9 +145,9 @@ public class TrainingGame extends Game {
 			return white ? Math.tanh((double) pos.wMtrl / (double) pos.bMtrl) - 1 : 2;
 		case BLACK_STALEMATE:
 		case WHITE_STALEMATE:
+			return white ? Math.tanh((double) pos.wMtrl / (double) pos.bMtrl) * 0.5 : Math.tanh((double) pos.bMtrl / (double) pos.wMtrl) * 0.5;
 		case DRAW_50:
 		case DRAW_REP:
-			return white ? Math.tanh((double) pos.wMtrl / (double) pos.bMtrl) * 0.5 : Math.tanh((double) pos.bMtrl / (double) pos.wMtrl) * 0.5;
 		default:
 			return 0;
 		}

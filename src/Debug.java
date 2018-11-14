@@ -20,13 +20,13 @@ public class Debug extends PApplet {
 	}
 
 	public void setup() {
-		t = new Trainer(1000);
+		t = new Trainer(100);
 
 		mp = new MutationParameter();
 		mp.weightMutateChance = 0.6;
 		mp.neuronMutateChance = 0.3;
 		mp.layerMutateChance = 0.1;
-		mp.weightStep = 0.001;
+		mp.weightStep = 0.01;
 		mp.weightModifyChance = 0.3;
 		mp.neuronModifyChance = 0.7;
 		mp.neuronRemoveChance = 0.5;
@@ -50,8 +50,10 @@ public class Debug extends PApplet {
 		t.runGeneration(Runtime.getRuntime().availableProcessors());
 		t.mutateGeneration(mp);
 		System.out.println(((System.currentTimeMillis() - time) / 1000.0) + " seconds to process generation");
-		double[] generationStats = t.getGenerationFitness(t.generationNum() - 1);
+		double[] generationStats = t.getGenerationRelativeFitness(t.generationNum() - 1);
 		System.out.println("Generation Fitness: " + generationStats[0] + "," + generationStats[1] + "," + generationStats[2] + "," + generationStats[3]);
+		generationStats = t.getGenerationFitness(t.generationNum() - 1);
+		//System.out.println("Generation Fitness: " + generationStats[0] + "," + generationStats[1] + "," + generationStats[2] + "," + generationStats[3]);
 		System.out.println("---------------------------------------------");
 
 		t.getGenerationBest(t.generationNum() - 1).drawNet(this, 100, height / 2, height - 200, width - 200, 40);
