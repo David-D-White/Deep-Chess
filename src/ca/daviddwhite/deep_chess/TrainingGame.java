@@ -139,10 +139,10 @@ public class TrainingGame extends Game {
 		switch (getGameState()) {
 		case WHITE_MATE:
 		case RESIGN_BLACK:
-			return white ? 2 : Math.tanh((double) pos.bMtrl / (double) pos.wMtrl) * 0.25;
+			return white ? 2 : Math.tanh((double) pos.bMtrl / (double) pos.wMtrl) - 1;
 		case BLACK_MATE:
 		case RESIGN_WHITE:
-			return white ? Math.tanh((double) pos.wMtrl / (double) pos.bMtrl) * 0.25 : 2;
+			return white ? Math.tanh((double) pos.wMtrl / (double) pos.bMtrl) - 1 : 2;
 		case BLACK_STALEMATE:
 		case WHITE_STALEMATE:
 		case DRAW_50:
