@@ -45,7 +45,7 @@ public class ComputerPlayer implements Player {
         maxTimeMillis = 10000;
         maxDepth = 100;
         maxNodes = -1;
-        verbose = true;
+        verbose = false;
         setTTLogSize(15);
         book = new Book(verbose);
         bookEnabled = true;
@@ -86,7 +86,7 @@ public class ComputerPlayer implements Player {
         if (bookEnabled) {
             Move bookMove = book.getBookMove(pos);
             if (bookMove != null) {
-                System.out.printf("Book moves: %s\n", book.getAllBookMoves(pos));
+                //System.out.printf("Book moves: %s\n", book.getAllBookMoves(pos));
                 return TextIO.moveToString(pos, bookMove, false);
             }
         }
@@ -194,7 +194,7 @@ public class ComputerPlayer implements Player {
         PV += tt.extractPV(pos);
         pos.unMakeMove(bestM, ui);
 
-//        tt.printStats();
+	// tt.printStats();
 
         // Return best move and PV
         return new TwoReturnValues<Move, String>(bestM, PV);
