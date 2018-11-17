@@ -56,3 +56,4 @@ local.properties
 # PDT-specific
 .buildpath
 net.txt
+*.txt

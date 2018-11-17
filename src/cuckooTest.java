@@ -177,14 +177,43 @@ public class cuckooTest {
     }
 
     public static void main(String[] args) throws InterruptedException, FileNotFoundException {
-	String fileHandle = "net_mate.txt";
-	cp = new ChessNet(new FileInputStream("nets/" + fileHandle));
-	c1 = new ComputerPlayer();
-	c1.useBook(true);
-	c1.timeLimit(50, 50, false);
+	// String fileHandle = "net_mate.txt";
+	// cp = new ChessNet(new FileInputStream("nets/" + fileHandle));
+	// c1 = new ComputerPlayer();
+	// c1.useBook(true);
+	// c1.timeLimit(50, 50, false);
+	//
+	// compvcomp(c1, cp);
 
-	compvcomp(c1, cp);
+	Game g = new Game(new HumanPlayer(), new HumanPlayer());
+	System.out.println(g.pos);
+	double[] d = ChessNet.getInputs(g.pos);
+	for (int i = 0; i < d.length; i++) {
+	    if (d[i] >= 0)
+		System.out.print(String.format("%.4f", d[i]) + "  ");
+	    else
+		System.out.print(String.format("%.4f", d[i]) + " ");
+	    if ((i + 1) % 8 == 0) {
+		System.out.println();
+		System.out.println();
+		System.out.println();
+		System.out.println();
+	    }
+	}
+	g.pos.whiteMove = false;
+	for (int i = 0; i < d.length; i++) {
+	    if (d[i] >= 0)
+		System.out.print(String.format("%.4f", d[i]) + "  ");
+	    else
+		System.out.print(String.format("%.4f", d[i]) + " ");
+	    if ((i + 1) % 8 == 0) {
+		System.out.println();
+		System.out.println();
+		System.out.println();
+		System.out.println();
+	    }
+	}
 
-	// playRandomComp(50, 50);
+	// playRandomComp(6000, 6000);
     }
 }

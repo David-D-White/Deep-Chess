@@ -20,7 +20,7 @@ import ca.daviddwhite.deep_chess.net.MutationParameter;
 public class Trainer {
 
     /** elite percent. */
-    public static double elitePercent = 0.1;// 0.03;
+    public static double elitePercent = 0.05;// 0.03;
 
     // The current generation
     private ChessNet[] generation;
@@ -29,6 +29,7 @@ public class Trainer {
     // The best net from each previous generation.
     private ArrayList<ChessNet> generationHistory;
     private ArrayList<double[]> generationFitness;
+    private ArrayList<double[]> bestFitness;
     // The fitness of each generation
     private HashMap<Integer, double[]> generationRelativeFitness;
 
@@ -41,6 +42,7 @@ public class Trainer {
     public Trainer(int generationSize) {
 	generationHistory = new ArrayList<ChessNet>();
 	generationFitness = new ArrayList<double[]>();
+	bestFitness = new ArrayList<double[]>();
 	generationRelativeFitness = new HashMap<Integer, double[]>();
 	if (generationSize < 1)
 	    throw new IllegalArgumentException("Generation size must be greater than 1");
@@ -59,6 +61,7 @@ public class Trainer {
     public Trainer(int generationSize, ChessNet seedNet, MutationParameter mp) {
 	generationHistory = new ArrayList<ChessNet>();
 	generationFitness = new ArrayList<double[]>();
+	bestFitness = new ArrayList<double[]>();
 	generationRelativeFitness = new HashMap<Integer, double[]>();
 	if (generationSize < 1)
 	    throw new IllegalArgumentException("Generation size must be greater than 1");
@@ -127,20 +130,27 @@ public class Trainer {
 	return generationFitness.get(generationNum);
     }
 
+    public double[] bestFitness(int generationNum) {
+	if (generationNum > bestFitness.size() - 1)
+	    return null;
+
+	return bestFitness.get(generationNum);
+    }
+
     /**
      * Run the current generation to completion.
      *
      * @param threadNum
      *            the number of threads to use.
      */
-    public void runGeneration(int gameNum, int searchTime, boolean useBook, int threadNum) {
+    public void runGeneration(int gameNum, int searchTime, boolean useBook, boolean randomMode, int threadNum) {
 	TrainingGame[] generationGames = new TrainingGame[gameNum * generation.length];
 
 	for (int i = 0; i < generation.length; i++) {
 	    for (int j = 0; j < gameNum; j++) {
 		ComputerPlayer cuckooAi = new ComputerPlayer();
 		cuckooAi.useBook(useBook);
-		cuckooAi.timeLimit(searchTime, searchTime, false);
+		cuckooAi.timeLimit(searchTime, searchTime, randomMode);
 		if (j % 2 == 0)
 		    generationGames[i * gameNum + j] = new TrainingGame(cuckooAi, generation[i]);
 		else
@@ -152,9 +162,11 @@ public class Trainer {
 	    runGamesThreadded(generationGames, i, threadNum);
 	}
 	int gamesLeft;
+	int printRate = 50;
+	int count = 0;
 	do {
 	    try {
-		Thread.sleep(1000);
+		Thread.sleep(100);
 	    }
 	    catch (InterruptedException e) {}
 	    gamesLeft = 0;
@@ -162,25 +174,41 @@ public class Trainer {
 		if (!generationGames[i].gameFinished())
 		    gamesLeft++;
 	    }
-	    System.out.print(String.format("%.2f", (1 - ((double) gamesLeft) / generationGames.length) * 100) + "% ");
+	    count++;
+	    if (count == printRate) {
+		System.out.print(String.format("%.2f", (1 - ((double) gamesLeft) / generationGames.length) * 100) + "% ");
+		count = 0;
+	    }
 	}
 	while (gamesLeft > 0);
 	System.out.println();
 
 	ChessNet[] top = new ChessNet[(int) (elitePercent * generation.length)];
+	int topIndex = 0;
 	for (int i = 0; i < top.length; i++) {
 	    for (int j = 0; j < generation.length; j++) {
-		if (generation[i] != null) {
-		    if (top[i] == null || generation[j].getStats()[0] > top[i].getStats()[0])
-			top[i] = generation[j];
+		if (generation[j] != null) {
+		    if (generation[topIndex] == null || generation[j].getStats()[0] > generation[topIndex].getStats()[0])
+			topIndex = j;
 		}
 	    }
+	    top[i] = generation[topIndex];
+	    generation[topIndex] = null;
 	}
 
-	if (!generationHistory.contains(top[0])) {
-	    generationHistory.add(top[0]);
-	    generationFitness.add(top[0].getStats());
+	generationHistory.add(top[0]);
+	bestFitness.add(top[0].getStats());
+	double[] generationFitness = new double[top[0].getStats().length];
+	for (int i = 0; i < top.length; i++) {
+	    for (int j = 0; j < generationFitness.length; j++)
+		generationFitness[j] += top[i].getStats()[j];
+	    double[] generationStats = top[i].getStats();
+	    System.out.println("(" + i + ") Fitness: " + String.format("%.20f", generationStats[0]) + "  -  (" + generationStats[1] + "," + generationStats[2]
+		    + "," + generationStats[3] + "," + generationStats[4] + ")");
 	}
+	for (int i = 0; i < generationFitness.length; i++)
+	    generationFitness[i] /= top.length;
+	this.generationFitness.add(generationFitness);
 
 	for (int i = 0; i < top.length; i++)
 	    top[i].clearStats();

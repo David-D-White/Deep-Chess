@@ -158,7 +158,7 @@ public class TrainingGame extends Game {
      * @return the fitness of the ChessNet
      */
     public double getFitness(boolean white) {
-	double turnVal = Math.tanh(pos.fullMoveCounter / 30);
+	double turnVal = Math.tanh(pos.fullMoveCounter / 30.0);
 	switch (getGameState()) {
 	    case WHITE_MATE:
 	    case RESIGN_BLACK:

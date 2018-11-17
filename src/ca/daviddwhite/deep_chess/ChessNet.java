@@ -10,9 +10,11 @@ import org.petero.cuckoo.engine.chess.Piece;
 import org.petero.cuckoo.engine.chess.Player;
 import org.petero.cuckoo.engine.chess.Position;
 import org.petero.cuckoo.engine.chess.TextIO;
+import org.petero.cuckoo.engine.chess.UndoInfo;
 
 import ca.daviddwhite.deep_chess.net.MutationParameter;
 import ca.daviddwhite.deep_chess.net.NeuralNet;
+import ca.daviddwhite.deep_chess.net.Neuron;
 import processing.core.PApplet;
 
 /**
@@ -45,10 +47,10 @@ public class ChessNet implements Player {
     }
 
     /** The number of neurons in the output layer of the network. */
-    public static final int INPUTS = 67;
+    public static final int INPUTS = 64 * 2;
 
     /** The number of neurons in each hidden layer of the network. */
-    public static final int[] HIDDEN_LAYERS = { 67, 64, 50, 32, 16, 8 };
+    public static final int[] HIDDEN_LAYERS = { 128, 100, 80, 64, 32, 16, 8 };
 
     /** The number of neurons in the output layer of the network */
     public static final int OUTPUTS = 1;
@@ -169,6 +171,7 @@ public class ChessNet implements Player {
 	MoveGen.removeIllegal(pos, moves);
 
 	double[] inputs = new double[INPUTS];
+	double[] moveValues = new double[moves.size];
 
 	// Hash style input
 	// String hash = Long.toHexString(pos.zobristHash());
@@ -178,56 +181,133 @@ public class ChessNet implements Player {
 	// Neuron[] inputLayer = net.getInputs();
 	// for (int i = 0; i < inputLayer.length; i++)
 	// inputLayer[i].value = inputs[i];
+	double[] start = getInputs(pos);
+	Neuron[] n = net.getInputs();
+	for (int j = 0; j < 64; j++) {
+	    n[j].value = start[j];
+	}
 
+	for (int i = 0; i < moves.size; i++) {
+	    UndoInfo ui = new UndoInfo();
+	    pos.makeMove(moves.m[i], ui);
+	    
+	    double[] move = getInputs(pos);
+	    for (int j = 64; j < INPUTS; j++) {
+		n[j].value = move[j - 64];
+	    }
+	    net.feedForward();
+
+	    moveValues[i] = net.getOutputs()[0].value;
+
+	    pos.unMakeMove(moves.m[i], ui);
+	}
+
+	int bestMoveIndex = 0;
+	for (int i = 0; i < moveValues.length; i++) {
+	    if (moveValues[i] > moveValues[bestMoveIndex])
+		bestMoveIndex = i;
+	}
+
+	return moves.m[bestMoveIndex];
+    }
+
+    public static double[] getInputs(Position pos) {
 	boolean white = pos.whiteMove;
 
-	for (int i = 0; i < 64; i++) {
-	    switch (pos.getPiece(i)) {
-		case Piece.WPAWN:
-		    inputs[i] = white ? PAWN_REL : -PAWN_REL;
-		case Piece.WKNIGHT:
-		    inputs[i] = white ? KNIGHT_REL : -KNIGHT_REL;
-		case Piece.WROOK:
-		    inputs[i] = white ? ROOK_REL : -ROOK_REL;
-		case Piece.WBISHOP:
-		    inputs[i] = white ? BISHOP_REL : -BISHOP_REL;
-		case Piece.WQUEEN:
-		    inputs[i] = white ? QUEEN_REL : -QUEEN_REL;
-		case Piece.WKING:
-		    inputs[i] = white ? KING_REL : -KING_REL;
-		case Piece.BPAWN:
-		    inputs[i] = white ? -PAWN_REL : PAWN_REL;
-		case Piece.BKNIGHT:
-		    inputs[i] = white ? -KNIGHT_REL : KNIGHT_REL;
-		case Piece.BROOK:
-		    inputs[i] = white ? -ROOK_REL : ROOK_REL;
-		case Piece.BBISHOP:
-		    inputs[i] = white ? -BISHOP_REL : BISHOP_REL;
-		case Piece.BQUEEN:
-		    inputs[i] = white ? -QUEEN_REL : QUEEN_REL;
-		case Piece.BKING:
-		    inputs[i] = white ? -KING_REL : KING_REL;
-		case Piece.EMPTY:
-		    inputs[i] = 0;
+	double[] inputs = new double[64];
+
+	if (white) {
+	    for (int i = 0; i < 64; i++) {
+		switch (pos.getPiece(i)) {
+		    case Piece.WPAWN:
+			inputs[i] = PAWN_REL;
+			break;
+		    case Piece.WKNIGHT:
+			inputs[i] = KNIGHT_REL;
+			break;
+		    case Piece.WROOK:
+			inputs[i] = ROOK_REL;
+			break;
+		    case Piece.WBISHOP:
+			inputs[i] = BISHOP_REL;
+			break;
+		    case Piece.WQUEEN:
+			inputs[i] = QUEEN_REL;
+			break;
+		    case Piece.WKING:
+			inputs[i] = KING_REL;
+			break;
+		    case Piece.BPAWN:
+			inputs[i] = -PAWN_REL;
+			break;
+		    case Piece.BKNIGHT:
+			inputs[i] = -KNIGHT_REL;
+			break;
+		    case Piece.BROOK:
+			inputs[i] = -ROOK_REL;
+			break;
+		    case Piece.BBISHOP:
+			inputs[i] = -BISHOP_REL;
+			break;
+		    case Piece.BQUEEN:
+			inputs[i] = -QUEEN_REL;
+			break;
+		    case Piece.BKING:
+			inputs[i] = -KING_REL;
+			break;
+		    case Piece.EMPTY:
+			inputs[i] = 0;
+			break;
+		}
+	    }
+	}
+	else {
+	    for (int i = 0; i < 64; i++) {
+		switch (pos.getPiece(i)) {
+		    case Piece.WPAWN:
+			inputs[63 - i] = -PAWN_REL;
+			break;
+		    case Piece.WKNIGHT:
+			inputs[63 - i] = -KNIGHT_REL;
+			break;
+		    case Piece.WROOK:
+			inputs[63 - i] = -ROOK_REL;
+			break;
+		    case Piece.WBISHOP:
+			inputs[63 - i] = -BISHOP_REL;
+			break;
+		    case Piece.WQUEEN:
+			inputs[63 - i] = -QUEEN_REL;
+			break;
+		    case Piece.WKING:
+			inputs[63 - i] = -KING_REL;
+			break;
+		    case Piece.BPAWN:
+			inputs[63 - i] = PAWN_REL;
+			break;
+		    case Piece.BKNIGHT:
+			inputs[63 - i] = KNIGHT_REL;
+			break;
+		    case Piece.BROOK:
+			inputs[63 - i] = ROOK_REL;
+			break;
+		    case Piece.BBISHOP:
+			inputs[63 - i] = BISHOP_REL;
+			break;
+		    case Piece.BQUEEN:
+			inputs[63 - i] = QUEEN_REL;
+			break;
+		    case Piece.BKING:
+			inputs[63 - i] = KING_REL;
+			break;
+		    case Piece.EMPTY:
+			inputs[63 - i] = 0;
+			break;
+		}
 	    }
 	}
 
-	// Add number of moves to the input layer
-	if (white) {
-	    inputs[inputs.length - 3] = pos.wMtrl;
-	    inputs[inputs.length - 2] = pos.bMtrl;
-	}
-	else {
-	    inputs[inputs.length - 3] = pos.bMtrl;
-	    inputs[inputs.length - 2] = pos.wMtrl;
-	}
-	inputs[inputs.length - 1] = moves.size;
-	// calculate move
-	net.feedForward();
-
-	// Convert output to a move index
-	int move = (int) ((net.getOutputs()[0].value + 1) / 2 * moves.size);
-	return moves.m[move];
+	return inputs;
     }
 
     /**
