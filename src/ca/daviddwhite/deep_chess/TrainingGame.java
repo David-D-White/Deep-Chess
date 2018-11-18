@@ -19,12 +19,10 @@ import ca.daviddwhite.deep_chess.ChessNet.TrainingCopy;
 public class TrainingGame extends Game {
     public static final double TIE_FITNESS = Math.tanh(1);
 
-    // The move counter for the 50 move draw rule.
-    private int moveCounter50 = 0;
-
     // The position history stored as the number of occurrences of each state.
     private HashMap<Long, Integer> posOccurrences = new HashMap<Long, Integer>();
 
+    // The position history for the 50 move rule
     private ArrayList<Position> history;
 
     // Has the game finished yet
@@ -69,9 +67,9 @@ public class TrainingGame extends Game {
 	// Track draw by 50 move rule
 	int movePiece = pos.getPiece(m.from);
 	if (movePiece == Piece.WPAWN || movePiece == Piece.BPAWN || isCaptureMove(m))
-	    moveCounter50 = 0;
+	    history.add(pos);
 	else
-	    moveCounter50++;
+	    history.clear();
 
 	// Track draw by 3 fold repition
 	long hash = pos.zobristHash();
@@ -136,10 +134,12 @@ public class TrainingGame extends Game {
 		break;
 	    processString(tempBlack.getCommand(pos, false, history));
 	}
-	if (whitePlayer instanceof ChessNet)
+	if (whitePlayer instanceof ChessNet) {
 	    ((ChessNet) whitePlayer).addGameStat(getFitness(true), true, getGameState());
-	if (blackPlayer instanceof ChessNet)
+	}
+	if (blackPlayer instanceof ChessNet) {
 	    ((ChessNet) blackPlayer).addGameStat(getFitness(false), false, getGameState());
+	}
 	gameFinished = true;
     }
 
@@ -162,12 +162,10 @@ public class TrainingGame extends Game {
 	switch (getGameState()) {
 	    case WHITE_MATE:
 	    case RESIGN_BLACK:
-		return white ? 2 * Math.tanh((double) pos.wMtrl / (double) pos.bMtrl) * (1 - turnVal)
-			: 0.5 * Math.tanh((double) pos.bMtrl / (double) pos.wMtrl) * turnVal;
+		return white ? 2 * Math.tanh((double) pos.wMtrl / (double) pos.bMtrl) : 0.5 * Math.tanh((double) pos.bMtrl / (double) pos.wMtrl) * turnVal;
 	    case BLACK_MATE:
 	    case RESIGN_WHITE:
-		return white ? 0.5 * Math.tanh((double) pos.wMtrl / (double) pos.bMtrl) * turnVal
-			: 2 * Math.tanh((double) pos.bMtrl / (double) pos.wMtrl) * (1 - turnVal);
+		return white ? 0.5 * Math.tanh((double) pos.wMtrl / (double) pos.bMtrl) * turnVal : 2 * Math.tanh((double) pos.bMtrl / (double) pos.wMtrl);
 	    case BLACK_STALEMATE:
 	    case WHITE_STALEMATE:
 	    case DRAW_50:
@@ -185,7 +183,7 @@ public class TrainingGame extends Game {
      */
     @Override
     public GameState getGameState() {
-	if (moveCounter50 >= 50) {
+	if (history.size() >= 50) {
 	    return GameState.DRAW_50;
 	}
 	else {

@@ -20,17 +20,17 @@ public class Debug extends PApplet {
     }
 
     public void setup() {
-	 ChessNet seeder = null;
-	 try {
-	 FileInputStream netFile = new FileInputStream("nets/net_320.txt");
-	 seeder = new ChessNet(netFile);
-	 netFile.close();
-	 }
-	 catch (IOException e) {
-	 // TODO Auto-generated catch block
-	 e.printStackTrace();
-	 System.exit(0);
-	 }
+	// ChessNet seeder = null;
+	// try {
+	// FileInputStream netFile = new FileInputStream("nets/net_410.txt");
+	// seeder = new ChessNet(netFile);
+	// netFile.close();
+	// }
+	// catch (IOException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// System.exit(0);
+	// }
 
 	mp = new MutationParameter();
 	mp.weightMutateChance = 0.9;
@@ -44,12 +44,12 @@ public class Debug extends PApplet {
 	mp.maxLayerRemove = 25;
 	mp.layerRemoveChance = 0.5;
 
-	t = new Trainer(200, seeder, mp);
-	//t = new Trainer(100);
+	// t = new Trainer(400, seeder, mp);
+	t = new Trainer(400);
 
 	System.out.println("Generation: " + t.generationNum());
 	long time = System.currentTimeMillis();
-	t.runGeneration(8, 60000, false, false, 6);// Runtime.getRuntime().availableProcessors());
+	t.runGeneration(2, 60000, false, false, 6);// Runtime.getRuntime().availableProcessors());
 	t.mutateGeneration(mp);
 	System.out.println(((System.currentTimeMillis() - time) / 1000.0) + " seconds to process generation");
 	System.out.println("---------------------------------------------");
@@ -64,7 +64,7 @@ public class Debug extends PApplet {
 
 	System.out.println("Generation: " + t.generationNum());
 	long time = System.currentTimeMillis();
-	t.runGeneration(8, 60000, false, false, 6);// Runtime.getRuntime().availableProcessors());
+	t.runGeneration(2, 60000, false, false, 6);// Runtime.getRuntime().availableProcessors());
 	t.mutateGeneration(mp);
 	System.out.println(((System.currentTimeMillis() - time) / 1000.0) + " seconds to process generation");
 	double[] generationStats = t.bestFitness(t.generationNum() - 1);

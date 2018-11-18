@@ -67,7 +67,7 @@ public class Trainer {
 	    throw new IllegalArgumentException("Generation size must be greater than 1");
 	generation = new ChessNet[generationSize];
 	generation[0] = new ChessNet(seedNet);
-	for (int i = 0; i < generation.length; i++)
+	for (int i = 1; i < generation.length; i++)
 	    generation[i] = seedNet.getMutatedCopy(mp);
     }
 
@@ -162,7 +162,7 @@ public class Trainer {
 	    runGamesThreadded(generationGames, i, threadNum);
 	}
 	int gamesLeft;
-	int printRate = 50;
+	int printRate = 10;
 	int count = 0;
 	do {
 	    try {
@@ -183,7 +183,7 @@ public class Trainer {
 	while (gamesLeft > 0);
 	System.out.println();
 
-	ChessNet[] top = new ChessNet[(int) (elitePercent * generation.length)];
+	ChessNet[] top = new ChessNet[(int) Math.ceil(elitePercent * generation.length)];
 	int topIndex = 0;
 	for (int i = 0; i < top.length; i++) {
 	    for (int j = 0; j < generation.length; j++) {

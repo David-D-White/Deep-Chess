@@ -172,36 +172,33 @@ public class ChessNet implements Player {
 
 	double[] inputs = new double[INPUTS];
 	double[] moveValues = new double[moves.size];
+	boolean white = pos.whiteMove;
 
-	// Hash style input
-	// String hash = Long.toHexString(pos.zobristHash());
-	// for (int i = 0; i < hash.length(); i++) {
-	// inputs[i] = Integer.parseInt(hash.charAt(i) + "", 16) * INPUT_STEP - 1;
-	// }
-	// Neuron[] inputLayer = net.getInputs();
-	// for (int i = 0; i < inputLayer.length; i++)
-	// inputLayer[i].value = inputs[i];
-	double[] start = getInputs(pos);
+	// Fill neurons for the current position
+	double[] start = getInputs(pos, white);
 	Neuron[] n = net.getInputs();
 	for (int j = 0; j < 64; j++) {
 	    n[j].value = start[j];
 	}
 
+	// Fill second neuron set for all potential moves 
 	for (int i = 0; i < moves.size; i++) {
 	    UndoInfo ui = new UndoInfo();
 	    pos.makeMove(moves.m[i], ui);
-	    
-	    double[] move = getInputs(pos);
+
+	    double[] move = getInputs(pos, white);
 	    for (int j = 64; j < INPUTS; j++) {
 		n[j].value = move[j - 64];
 	    }
 	    net.feedForward();
 
+	    //Rank move
 	    moveValues[i] = net.getOutputs()[0].value;
 
 	    pos.unMakeMove(moves.m[i], ui);
 	}
 
+	//Search for highest ranked move
 	int bestMoveIndex = 0;
 	for (int i = 0; i < moveValues.length; i++) {
 	    if (moveValues[i] > moveValues[bestMoveIndex])
@@ -211,9 +208,7 @@ public class ChessNet implements Player {
 	return moves.m[bestMoveIndex];
     }
 
-    public static double[] getInputs(Position pos) {
-	boolean white = pos.whiteMove;
-
+    public static double[] getInputs(Position pos, boolean white) {
 	double[] inputs = new double[64];
 
 	if (white) {
@@ -263,45 +258,46 @@ public class ChessNet implements Player {
 	}
 	else {
 	    for (int i = 0; i < 64; i++) {
+		int index = 64 - (8 + i / 8 * 8) + ((i) % 8);
 		switch (pos.getPiece(i)) {
 		    case Piece.WPAWN:
-			inputs[63 - i] = -PAWN_REL;
+			inputs[index] = -PAWN_REL;
 			break;
 		    case Piece.WKNIGHT:
-			inputs[63 - i] = -KNIGHT_REL;
+			inputs[index] = -KNIGHT_REL;
 			break;
 		    case Piece.WROOK:
-			inputs[63 - i] = -ROOK_REL;
+			inputs[index] = -ROOK_REL;
 			break;
 		    case Piece.WBISHOP:
-			inputs[63 - i] = -BISHOP_REL;
+			inputs[index] = -BISHOP_REL;
 			break;
 		    case Piece.WQUEEN:
-			inputs[63 - i] = -QUEEN_REL;
+			inputs[index] = -QUEEN_REL;
 			break;
 		    case Piece.WKING:
-			inputs[63 - i] = -KING_REL;
+			inputs[index] = -KING_REL;
 			break;
 		    case Piece.BPAWN:
-			inputs[63 - i] = PAWN_REL;
+			inputs[index] = PAWN_REL;
 			break;
 		    case Piece.BKNIGHT:
-			inputs[63 - i] = KNIGHT_REL;
+			inputs[index] = KNIGHT_REL;
 			break;
 		    case Piece.BROOK:
-			inputs[63 - i] = ROOK_REL;
+			inputs[index] = ROOK_REL;
 			break;
 		    case Piece.BBISHOP:
-			inputs[63 - i] = BISHOP_REL;
+			inputs[index] = BISHOP_REL;
 			break;
 		    case Piece.BQUEEN:
-			inputs[63 - i] = QUEEN_REL;
+			inputs[index] = QUEEN_REL;
 			break;
 		    case Piece.BKING:
-			inputs[63 - i] = KING_REL;
+			inputs[index] = KING_REL;
 			break;
 		    case Piece.EMPTY:
-			inputs[63 - i] = 0;
+			inputs[index] = 0;
 			break;
 		}
 	    }

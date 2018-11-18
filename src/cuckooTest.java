@@ -110,30 +110,31 @@ public class cuckooTest {
     public static void playRandomComp(int minTime, int maxTime) {
 	c1 = new ComputerPlayer();
 	c1.timeLimit(minTime, maxTime, false);
-	c1.useBook(true);
+	c1.useBook(false);
 	c2 = new ComputerPlayer();
-	c2.useBook(true);
+	c2.useBook(false);
 	c2.timeLimit(minTime, maxTime, false);
 
 	Game game = new Game(c1, c2);
 
 	System.out.println();
 
-	System.out.println(game.pos.toString());
+	// System.out.println(game.pos.toString());
 
 	while (game.getGameState() == GameState.ALIVE) {
 
 	    game.processString(c1.getCommand(game.pos, false, game.getHistory()));
-
+	    if (game.getGameState() != GameState.ALIVE)
+		break;
 	    game.processString(c2.getCommand(game.pos, false, game.getHistory()));
-
-	    System.out.println(game.pos.toString());
-	    System.out.println(game.getGameStateString());
-	    System.out.println(game.pos.fullMoveCounter);
-
-	    System.out.println("White:" + game.pos.wMtrl);
-	    System.out.println("Black:" + game.pos.bMtrl);
 	}
+
+	System.out.println(game.pos.toString());
+	System.out.println(game.getGameStateString());
+	System.out.println(game.pos.fullMoveCounter);
+
+	System.out.println("White:" + game.pos.wMtrl);
+	System.out.println("Black:" + game.pos.bMtrl);
     }
 
     public static void compvcomp(Player p1, Player p2) {
@@ -142,16 +143,13 @@ public class cuckooTest {
 
 	    // System.out.println(game.pos.toString());
 
-	    ArrayList<Position> history = game.getHistory();
-
 	    while (game.getGameState() == GameState.ALIVE) {
 
-		game.processString(p1.getCommand(game.pos, false, history));
-		history.add(game.pos);
+		game.processString(p1.getCommand(game.pos, false, game.getHistory()));
+
 		if (game.getGameState() != GameState.ALIVE)
 		    break;
-		game.processString(p2.getCommand(game.pos, false, history));
-		history.add(game.pos);
+		game.processString(p2.getCommand(game.pos, false, game.getHistory()));
 	    }
 
 	    System.out.println(game.pos.toString());
@@ -161,59 +159,24 @@ public class cuckooTest {
 	    System.out.println("White:" + game.pos.wMtrl);
 	    System.out.println("Black:" + game.pos.bMtrl);
 
-	    if (game.getGameState() == GameState.BLACK_MATE) {
-		try {
-		    PrintStream ps = new PrintStream(".//nets/net_mate.txt");
-		    ((ChessNet) p2).getNet().printNet(ps);
-		    ps.close();
-		}
-		catch (FileNotFoundException e) {
-		    // TODO Auto-generated catch block
-		    e.printStackTrace();
-		}
+	    if (true || game.getGameState() == GameState.BLACK_MATE) {
+		System.out.println(game.getHistory().size());
 		break;
 	    }
 	}
     }
 
     public static void main(String[] args) throws InterruptedException, FileNotFoundException {
-	// String fileHandle = "net_mate.txt";
-	// cp = new ChessNet(new FileInputStream("nets/" + fileHandle));
-	// c1 = new ComputerPlayer();
-	// c1.useBook(true);
-	// c1.timeLimit(50, 50, false);
-	//
-	// compvcomp(c1, cp);
+	String fileHandle = "net_410.txt";
+	cp = new ChessNet(new FileInputStream("nets/" + fileHandle));
+	c1 = new ComputerPlayer();
+	c1.useBook(false);
+	c1.timeLimit(60000, 60000, false);
 
-	Game g = new Game(new HumanPlayer(), new HumanPlayer());
-	System.out.println(g.pos);
-	double[] d = ChessNet.getInputs(g.pos);
-	for (int i = 0; i < d.length; i++) {
-	    if (d[i] >= 0)
-		System.out.print(String.format("%.4f", d[i]) + "  ");
-	    else
-		System.out.print(String.format("%.4f", d[i]) + " ");
-	    if ((i + 1) % 8 == 0) {
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println();
-	    }
-	}
-	g.pos.whiteMove = false;
-	for (int i = 0; i < d.length; i++) {
-	    if (d[i] >= 0)
-		System.out.print(String.format("%.4f", d[i]) + "  ");
-	    else
-		System.out.print(String.format("%.4f", d[i]) + " ");
-	    if ((i + 1) % 8 == 0) {
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println();
-	    }
-	}
+	compvcomp(cp, c1);
+	compvcomp(c1, cp);
 
+	// for (int i = 0; i < 10; i++)
 	// playRandomComp(6000, 6000);
     }
 }
