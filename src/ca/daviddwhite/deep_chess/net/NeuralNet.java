@@ -414,7 +414,7 @@ public class NeuralNet {
 	float verticalStep = height / (maxNeurons - 1);
 
 	// Draw Synapses
-	canvas.strokeWeight(2);
+	canvas.strokeWeight(0);
 	canvas.fill(weightColor);
 	canvas.stroke(synapseColor);
 	for (int i = 0; i < inputs.length; i++) {

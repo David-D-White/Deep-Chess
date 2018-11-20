@@ -44,7 +44,7 @@ public class ComputerPlayer implements Player {
     public ComputerPlayer() {
 	minTimeMillis = 10000;
 	maxTimeMillis = 10000;
-	maxDepth = 5;// 100;
+	maxDepth = 1;// 100;
 	maxNodes = -1;
 	verbose = false;
 	setTTLogSize(15);
