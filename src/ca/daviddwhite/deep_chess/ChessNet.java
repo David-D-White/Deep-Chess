@@ -216,40 +216,40 @@ public class ChessNet implements Player {
 
 			switch (pos.getPiece(i)) {
 			case Piece.WPAWN:
-				inputs[index * 6] = 1;
+				inputs[index * 6] = white ? 1 : -1;
 				break;
 			case Piece.WKNIGHT:
-				inputs[index * 6 + 1] = 1;
+				inputs[index * 6 + 1] = white ? 1 : -1;
 				break;
 			case Piece.WROOK:
-				inputs[index * 6 + 2] = 1;
+				inputs[index * 6 + 2] = white ? 1 : -1;
 				break;
 			case Piece.WBISHOP:
-				inputs[index * 6 + 3] = 1;
+				inputs[index * 6 + 3] = white ? 1 : -1;
 				break;
 			case Piece.WQUEEN:
-				inputs[index * 6 + 4] = 1;
+				inputs[index * 6 + 4] = white ? 1 : -1;
 				break;
 			case Piece.WKING:
-				inputs[index * 6 + 5] = 1;
+				inputs[index * 6 + 5] = white ? 1 : -1;
 				break;
 			case Piece.BPAWN:
-				inputs[index * 6] = -1;
+				inputs[index * 6] = white ? -1 : 1;
 				break;
 			case Piece.BKNIGHT:
-				inputs[index * 6 + 1] = -1;
+				inputs[index * 6 + 1] = white ? -1 : 1;
 				break;
 			case Piece.BROOK:
-				inputs[index * 6 + 2] = -1;
+				inputs[index * 6 + 2] = white ? -1 : 1;
 				break;
 			case Piece.BBISHOP:
-				inputs[index * 6 + 3] = -1;
+				inputs[index * 6 + 3] = white ? -1 : 1;
 				break;
 			case Piece.BQUEEN:
-				inputs[index * 6 + 4] = -1;
+				inputs[index * 6 + 4] = white ? -1 : 1;
 				break;
 			case Piece.BKING:
-				inputs[index * 6 + 5] = -1;
+				inputs[index * 6 + 5] = white ? -1 : 1;
 				break;
 			default:
 				break;

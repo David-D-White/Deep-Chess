@@ -173,7 +173,7 @@ public class cuckooTest {
 		// compvcomp(cp, c1);
 		// compvcomp(c1, cp);
 
-		playLoadedNet("net_1590.txt");
+		playLoadedNet("net_200.txt");
 
 		// for (int i = 0; i < 10; i++)
 		// playRandomComp(6000, 6000);
