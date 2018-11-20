@@ -22,7 +22,7 @@ public class Debug extends PApplet {
     public void setup() {
 	// ChessNet seeder = null;
 	// try {
-	// FileInputStream netFile = new FileInputStream("nets/net_410.txt");
+	// FileInputStream netFile = new FileInputStream("nets/completed depth/depth_1 semi.txt");
 	// seeder = new ChessNet(netFile);
 	// netFile.close();
 	// }
@@ -37,7 +37,7 @@ public class Debug extends PApplet {
 	mp.neuronMutateChance = 0.07;
 	mp.layerMutateChance = 0.03;
 	mp.weightStep = 0.0001;
-	mp.weightModifyChance = 0.2;
+	mp.weightModifyChance = 0.4;
 	mp.neuronModifyChance = 0.8;
 	mp.neuronRemoveChance = 0.5;
 	mp.maxLayerInsert = 25;
@@ -45,11 +45,11 @@ public class Debug extends PApplet {
 	mp.layerRemoveChance = 0.5;
 
 	// t = new Trainer(400, seeder, mp);
-	t = new Trainer(400);
+	t = new Trainer(90);
 
 	System.out.println("Generation: " + t.generationNum());
 	long time = System.currentTimeMillis();
-	t.runGeneration(2, 60000, false, false, 6);// Runtime.getRuntime().availableProcessors());
+	t.runGeneration(2, 60000, true, false, 6);// Runtime.getRuntime().availableProcessors());
 	t.mutateGeneration(mp);
 	System.out.println(((System.currentTimeMillis() - time) / 1000.0) + " seconds to process generation");
 	System.out.println("---------------------------------------------");
@@ -64,15 +64,15 @@ public class Debug extends PApplet {
 
 	System.out.println("Generation: " + t.generationNum());
 	long time = System.currentTimeMillis();
-	t.runGeneration(2, 60000, false, false, 6);// Runtime.getRuntime().availableProcessors());
+	t.runGeneration(2, 60000, true, false, 6);// Runtime.getRuntime().availableProcessors());
 	t.mutateGeneration(mp);
 	System.out.println(((System.currentTimeMillis() - time) / 1000.0) + " seconds to process generation");
 	double[] generationStats = t.bestFitness(t.generationNum() - 1);
 	System.out.println("Generation Best: " + String.format("%.20f", generationStats[0]) + "  -  (" + generationStats[1] + "," + generationStats[2] + ","
 		+ generationStats[3] + "," + generationStats[4] + ")");
-	generationStats = t.getGenerationFitness(t.generationNum() - 1);
-	System.out.println("Generation Average: " + String.format("%.20f", generationStats[0]) + "  -  (" + generationStats[1] + "," + generationStats[2] + ","
-		+ generationStats[3] + "," + generationStats[4] + ")");
+	generationStats = t.getGenerationRelativeFitness(t.generationNum() - 1);
+	System.out.println("Generation Relative Fitness: " + String.format("%.20f", generationStats[0]) + "  -  (" + generationStats[1] + ","
+		+ generationStats[2] + "," + generationStats[3] + "," + generationStats[4] + ")");
 	// generationStats = t.getGenerationRelativeFitness(t.generationNum() - 1);
 	// System.out.println("Generation Relative Fitness: " + generationStats[0] + "," + generationStats[1] + "," + generationStats[2] + "," +
 	// generationStats[3]

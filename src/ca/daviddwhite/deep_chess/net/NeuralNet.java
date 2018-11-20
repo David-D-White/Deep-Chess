@@ -157,7 +157,7 @@ public class NeuralNet {
 		for (Synapse s : connections) {
 		    if (Math.random() < mutateChance) {
 			int sign = (int) Math.signum(Math.random() - 0.5);
-			s.weight += stepVal * sign;
+			s.weight += stepVal * sign * Math.random();
 		    }
 		}
 	    }

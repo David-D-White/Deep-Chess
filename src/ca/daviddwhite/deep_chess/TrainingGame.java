@@ -39,7 +39,7 @@ public class TrainingGame extends Game {
     public TrainingGame(Player whitePlayer, Player blackPlayer) {
 	super(whitePlayer, blackPlayer);
 	history = new ArrayList<Position>();
-	history.add(pos);
+	posOccurrences = new HashMap<Long, Integer>();
     }
 
     @Override
@@ -64,20 +64,6 @@ public class TrainingGame extends Game {
      *            the move to make
      */
     public void makeMove(Move m) {
-	// Track draw by 50 move rule
-	int movePiece = pos.getPiece(m.from);
-	if (movePiece == Piece.WPAWN || movePiece == Piece.BPAWN || isCaptureMove(m))
-	    history.add(pos);
-	else
-	    history.clear();
-
-	// Track draw by 3 fold repition
-	long hash = pos.zobristHash();
-	if (posOccurrences.containsKey(hash))
-	    posOccurrences.put(hash, posOccurrences.get(hash) + 1);
-	else
-	    posOccurrences.put(hash, 1);
-
 	UndoInfo ui = new UndoInfo();
 	pos.makeMove(m, ui);
 	TextIO.fixupEPSquare(pos);
@@ -92,7 +78,19 @@ public class TrainingGame extends Game {
 	pendingDrawOffer = false;
 	currentMove++;
 
-	history.add(pos);
+	// Track draw by 3 fold repition
+	long hash = pos.zobristHash();
+	if (posOccurrences.containsKey(hash))
+	    posOccurrences.put(hash, posOccurrences.get(hash) + 1);
+	else
+	    posOccurrences.put(hash, 1);
+
+	// Track draw by 50 move rule
+	int movePiece = pos.getPiece(m.from);
+	if (movePiece == Piece.WPAWN || movePiece == Piece.BPAWN || isCaptureMove(m))
+	    history.clear();
+	else
+	    history.add(pos);
     }
 
     // Check if the given move captures a piece

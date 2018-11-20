@@ -50,7 +50,7 @@ public class ChessNet implements Player {
     public static final int INPUTS = 64 * 2;
 
     /** The number of neurons in each hidden layer of the network. */
-    public static final int[] HIDDEN_LAYERS = { 128, 100, 80, 64, 32, 16, 8 };
+    public static final int[] HIDDEN_LAYERS = { 128 };
 
     /** The number of neurons in the output layer of the network */
     public static final int OUTPUTS = 1;
@@ -181,7 +181,7 @@ public class ChessNet implements Player {
 	    n[j].value = start[j];
 	}
 
-	// Fill second neuron set for all potential moves 
+	// Fill second neuron set for all potential moves
 	for (int i = 0; i < moves.size; i++) {
 	    UndoInfo ui = new UndoInfo();
 	    pos.makeMove(moves.m[i], ui);
@@ -192,13 +192,13 @@ public class ChessNet implements Player {
 	    }
 	    net.feedForward();
 
-	    //Rank move
+	    // Rank move
 	    moveValues[i] = net.getOutputs()[0].value;
 
 	    pos.unMakeMove(moves.m[i], ui);
 	}
 
-	//Search for highest ranked move
+	// Search for highest ranked move
 	int bestMoveIndex = 0;
 	for (int i = 0; i < moveValues.length; i++) {
 	    if (moveValues[i] > moveValues[bestMoveIndex])

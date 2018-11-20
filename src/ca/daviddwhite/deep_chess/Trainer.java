@@ -144,25 +144,39 @@ public class Trainer {
      *            the number of threads to use.
      */
     public void runGeneration(int gameNum, int searchTime, boolean useBook, boolean randomMode, int threadNum) {
-	TrainingGame[] generationGames = new TrainingGame[gameNum * generation.length];
+	// Play AI
+	// TrainingGame[] generationGames = new TrainingGame[gameNum * generation.length];
+	// for (int i = 0; i < generation.length; i++) {
+	// for (int j = 0; j < gameNum; j++) {
+	// ComputerPlayer cuckooAi = new ComputerPlayer();
+	// cuckooAi.useBook(useBook);
+	// cuckooAi.timeLimit(searchTime, searchTime, randomMode);
+	// if (j % 2 == 0)
+	// generationGames[i * gameNum + j] = new TrainingGame(cuckooAi, generation[i]);
+	// else
+	// generationGames[i * gameNum + j] = new TrainingGame(generation[i], cuckooAi);
+	// }
+	// }
 
+	// Play Self
+
+	ArrayList<TrainingGame> gameList = new ArrayList<TrainingGame>();
 	for (int i = 0; i < generation.length; i++) {
-	    for (int j = 0; j < gameNum; j++) {
-		ComputerPlayer cuckooAi = new ComputerPlayer();
-		cuckooAi.useBook(useBook);
-		cuckooAi.timeLimit(searchTime, searchTime, randomMode);
-		if (j % 2 == 0)
-		    generationGames[i * gameNum + j] = new TrainingGame(cuckooAi, generation[i]);
-		else
-		    generationGames[i * gameNum + j] = new TrainingGame(generation[i], cuckooAi);
+	    for (int j = i + 1; j < generation.length; j++) {
+		gameList.add(new TrainingGame(generation[i], generation[j]));
+		gameList.add(new TrainingGame(generation[j], generation[i]));
 	    }
 	}
 
+	TrainingGame[] generationGames = new TrainingGame[gameList.size()];
+	generationGames = gameList.toArray(generationGames);
+
+	// Run all games to completion
 	for (int i = 0; i < threadNum; i++) {
 	    runGamesThreadded(generationGames, i, threadNum);
 	}
 	int gamesLeft;
-	int printRate = 10;
+	int printRate = 50;
 	int count = 0;
 	do {
 	    try {
@@ -183,6 +197,7 @@ public class Trainer {
 	while (gamesLeft > 0);
 	System.out.println();
 
+	// Find most fit
 	ChessNet[] top = new ChessNet[(int) Math.ceil(elitePercent * generation.length)];
 	int topIndex = 0;
 	for (int i = 0; i < top.length; i++) {
