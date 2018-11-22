@@ -47,10 +47,10 @@ public class ChessNet implements Player {
     }
 
     /** The number of neurons in the output layer of the network. */
-    public static final int INPUTS = 64 * 2;
+    public static final int INPUTS = 64 * 6;
 
     /** The number of neurons in each hidden layer of the network. */
-    public static final int[] HIDDEN_LAYERS = { 1 };
+    public static final int[] HIDDEN_LAYERS = { 64 };
 
     /** The number of neurons in the output layer of the network */
     public static final int OUTPUTS = 1;
@@ -66,7 +66,7 @@ public class ChessNet implements Player {
     // Current fitness of the net
     private double fitness;
     // Game stats
-    private int wins, losses, draws, wasted;
+    private int wWins, bWins, wLosses, bLosses, draws;
 
     /**
      * Instantiates a new chess net.
@@ -83,10 +83,11 @@ public class ChessNet implements Player {
     public ChessNet(ChessNet cn) {
 	net = new NeuralNet(cn.net);
 	this.fitness = cn.fitness;
-	this.wins = cn.wins;
-	this.losses = cn.losses;
+	this.wWins = cn.wWins;
+	this.bWins = cn.bWins;
+	this.wLosses = cn.wLosses;
+	this.bLosses = cn.bLosses;
 	this.draws = cn.draws;
-	this.wasted = cn.wasted;
     }
 
     // Creates a new chessNet with an identical neural net
@@ -109,27 +110,23 @@ public class ChessNet implements Player {
 	    case WHITE_MATE:
 	    case RESIGN_BLACK:
 		if (isWhite)
-		    wins++;
+		    wWins++;
 		else
-		    losses++;
+		    bLosses++;
 		break;
 	    case BLACK_MATE:
 	    case RESIGN_WHITE:
 		if (isWhite)
-		    losses++;
+		    wLosses++;
 		else
-		    wins++;
-		break;
-	    case DRAW_50:
-	    case DRAW_REP:
-		wasted++;
+		    bWins++;
 		break;
 	    default:
 		draws++;
 	}
 
 	// Keep a rolling average of the fitness score
-	int gameNum = wins + losses + draws + wasted;
+	int gameNum = wWins + bWins + wLosses + bLosses + draws;
 	this.fitness *= (gameNum - 1.0) / gameNum;
 	this.fitness += fitness / gameNum;
     }
@@ -141,7 +138,7 @@ public class ChessNet implements Player {
      *         wasted}
      */
     public double[] getStats() {
-	return new double[] { fitness, wins, losses, draws, wasted };
+	return new double[] { fitness, wWins, bWins, wLosses, bLosses, draws };
     }
 
     /**
@@ -149,10 +146,11 @@ public class ChessNet implements Player {
      */
     public void clearStats() {
 	fitness = 0;
-	wins = 0;
-	losses = 0;
+	wWins = 0;
+	bWins = 0;
+	wLosses = 0;
+	bLosses = 0;
 	draws = 0;
-	wasted = 0;
     }
 
     /**
@@ -176,20 +174,15 @@ public class ChessNet implements Player {
 
 	// Get the input neurons
 	Neuron[] n = net.getInputs();
-	double[] start = getInputs(pos, white);
-
-	for (int i = 0; i < 64; i++) {
-	    n[i].value = start[i];
-	}
 
 	// Calculate position value for all potential moves
 	for (int i = 0; i < moves.size; i++) {
 	    UndoInfo ui = new UndoInfo();
 	    pos.makeMove(moves.m[i], ui);
 
-	    double[] move = getInputs(pos, white);
-	    for (int j = 64; j < INPUTS; j++) {
-		n[j].value = move[j - 64];
+	    double[] inputs = getInputs(pos, white);
+	    for (int j = 0; j < INPUTS; j++) {
+		n[j].value = inputs[j];
 	    }
 	    net.feedForward();
 
@@ -210,51 +203,51 @@ public class ChessNet implements Player {
     }
 
     public static double[] getInputs(Position pos, boolean white) {
-	double[] inputs = new double[64];
+	double[] inputs = new double[64 * 6];
 
 	for (int i = 0; i < 64; i++) {
 	    int index = 0;
 	    if (white)
-		index = 1;
+		index = i;
 	    else
 		index = 64 - (8 + i / 8 * 8) + (i % 8);
 
 	    switch (pos.getPiece(i)) {
 		case Piece.WPAWN:
-		    inputs[index] = white ? PAWN_REL : -PAWN_REL;
+		    inputs[index * 6] = white ? 1 : -1;
 		    break;
 		case Piece.WKNIGHT:
-		    inputs[index] = white ? KNIGHT_REL : -KNIGHT_REL;
+		    inputs[index * 6 + 1] = white ? 1 : -1;
 		    break;
 		case Piece.WROOK:
-		    inputs[index] = white ? ROOK_REL : -ROOK_REL;
+		    inputs[index * 6 + 2] = white ? 1 : -1;
 		    break;
 		case Piece.WBISHOP:
-		    inputs[index] = white ? BISHOP_REL : -BISHOP_REL;
+		    inputs[index * 6 + 3] = white ? 1 : -1;
 		    break;
 		case Piece.WQUEEN:
-		    inputs[index] = white ? QUEEN_REL : -QUEEN_REL;
+		    inputs[index * 6 + 4] = white ? 1 : -1;
 		    break;
 		case Piece.WKING:
-		    inputs[index] = white ? KING_REL : -KING_REL;
+		    inputs[index * 6 + 5] = white ? 1 : -1;
 		    break;
 		case Piece.BPAWN:
-		    inputs[index] = white ? -PAWN_REL : PAWN_REL;
+		    inputs[index * 6] = white ? -1 : 1;
 		    break;
 		case Piece.BKNIGHT:
-		    inputs[index] = white ? -KNIGHT_REL : KNIGHT_REL;
+		    inputs[index * 6 + 1] = white ? -1 : 1;
 		    break;
 		case Piece.BROOK:
-		    inputs[index] = white ? -ROOK_REL : ROOK_REL;
+		    inputs[index * 6 + 2] = white ? -1 : 1;
 		    break;
 		case Piece.BBISHOP:
-		    inputs[index] = white ? -BISHOP_REL : BISHOP_REL;
+		    inputs[index * 6 + 3] = white ? -1 : 1;
 		    break;
 		case Piece.BQUEEN:
-		    inputs[index] = white ? -QUEEN_REL : QUEEN_REL;
+		    inputs[index * 6 + 4] = white ? -1 : 1;
 		    break;
 		case Piece.BKING:
-		    inputs[index] = white ? -KING_REL : KING_REL;
+		    inputs[index * 6 + 5] = white ? -1 : 1;
 		    break;
 		default:
 		    break;

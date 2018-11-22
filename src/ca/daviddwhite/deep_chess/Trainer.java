@@ -20,7 +20,8 @@ import ca.daviddwhite.deep_chess.net.MutationParameter;
 public class Trainer {
 
     /** elite percent. */
-    public static double elitePercent = 0.05;// 0.03;
+    public static double elitePercent = 0.1;// 0.03;
+    public static double randomPercent = 0.1;
 
     // The current generation
     private ChessNet[] generation;
@@ -218,8 +219,9 @@ public class Trainer {
 	    for (int j = 0; j < generationFitness.length; j++)
 		generationFitness[j] += top[i].getStats()[j];
 	    double[] generationStats = top[i].getStats();
-	    System.out.println("(" + i + ") Fitness: " + String.format("%.20f", generationStats[0]) + "  -  (" + generationStats[1] + "," + generationStats[2]
-		    + "," + generationStats[3] + "," + generationStats[4] + ")");
+	    System.out.println("(" + i + ")" + String.format("%.20f", generationStats[0]) + "  -  [" + (generationStats[1] + generationStats[2]) + ":("
+		    + generationStats[1] + "," + generationStats[2] + ")," + (generationStats[3] + generationStats[4]) + ":(" + generationStats[3] + ","
+		    + generationStats[4] + ")," + generationStats[5] + "]");
 	}
 	for (int i = 0; i < generationFitness.length; i++)
 	    generationFitness[i] /= top.length;
@@ -241,9 +243,14 @@ public class Trainer {
 	    generation[i] = best[i];
 	}
 
-	for (int i = best.length; i < generation.length; i++) {
+	for (int i = best.length; i < Math.ceil(generation.length * (1 - randomPercent)); i++) {
 	    int index = (int) (Math.random() * best.length);
 	    generation[i] = best[index].getMutatedCopy(mp);
+	}
+
+	for (int i = 0; i < generation.length; i++) {
+	    if (generation[i] == null)
+		generation[i] = new ChessNet();
 	}
     }
 
