@@ -1,7 +1,5 @@
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 import org.petero.cuckoo.engine.chess.ComputerPlayer;
@@ -12,7 +10,6 @@ import org.petero.cuckoo.engine.chess.Move;
 import org.petero.cuckoo.engine.chess.MoveGen;
 import org.petero.cuckoo.engine.chess.Piece;
 import org.petero.cuckoo.engine.chess.Player;
-import org.petero.cuckoo.engine.chess.Position;
 import org.petero.cuckoo.engine.chess.TextIO;
 
 import ca.daviddwhite.deep_chess.ChessNet;
@@ -173,7 +170,7 @@ public class cuckooTest {
 		// compvcomp(cp, c1);
 		// compvcomp(c1, cp);
 
-		playLoadedNet("net_140.txt");
+		playLoadedNet("net_530.txt");
 
 		// for (int i = 0; i < 10; i++)
 		// playRandomComp(6000, 6000);
